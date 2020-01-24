@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "swift-tools-support-core",
+        "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
+        "state": {
+          "branch": "master",
+          "revision": "5ec233eef8dd4df8c2bbf2b8b511a59ff3898a5d",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

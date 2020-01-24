@@ -13,16 +13,18 @@ let package = Package(
             name: "swift-doc",
             targets: ["swift-doc"])
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-tools-support-core.git", .branch("master")),
+    ],
     targets: [
         .target(
             name: "SwiftDoc",
-            dependencies: []),
+            dependencies: ["SwiftToolsSupport-auto"]),
         .testTarget(
             name: "SwiftDocTests",
             dependencies: ["SwiftDoc"]),
         .target(
             name: "swift-doc",
-            dependencies: ["SwiftDoc"])
+            dependencies: ["SwiftDoc", "SwiftToolsSupport-auto"])
     ]
 )
