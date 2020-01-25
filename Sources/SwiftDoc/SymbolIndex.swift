@@ -16,7 +16,7 @@ public struct SymbolIndex {
 
     return symbolGraphs.map {graph in
       graph.symbols.filter() {
-        return $0.identifier.displayNameComponents.joined(separator: ".").hasSuffix(string)
+        return $0.displayName.hasSuffix(string)
       }.map { (graph, $0) }
     }.reduce([], +)
   }
