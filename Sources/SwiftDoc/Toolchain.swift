@@ -8,6 +8,6 @@ public struct Toolchain {
     self.toolchainPath = path
   }
 
-  public lazy var diagnosticDocumentationPath: AbsolutePath =
-    toolchainPath.appending(components: "usr", "share", "doc", "swift", "diagnostics")
+  public lazy var symbolGraphToolPath: AbsolutePath =
+    toolchainPath.appending(components: "usr", "bin", "swift-symbolgraph-extract")
 }

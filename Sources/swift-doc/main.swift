@@ -1,6 +1,7 @@
 import TSCUtility
 import TSCBasic
 import SwiftDoc
+import Foundation
 
 struct Options {
   var input: String = ""
@@ -20,9 +21,9 @@ do {
                                  kind: PathArgument.self),
               to: { $0.overrideToolchainPath = $1.path })
 
-  let result = try parser.parse(Array(CommandLine.arguments.dropFirst()))
+  let parseResult = try parser.parse(Array(CommandLine.arguments.dropFirst()))
   var options = Options()
-  try binder.fill(parseResult: result, into: &options)
+  try binder.fill(parseResult: parseResult, into: &options)
 
   let toolPath = try AbsolutePath(validating: CommandLine.arguments[0])
   // Remove "usr/bin/swift-doc"
@@ -30,4 +31,25 @@ do {
     toolPath.parentDirectory.parentDirectory.parentDirectory
   var toolchain = Toolchain(path: toolchainPath)
 
+  // TODO: stop hardcoding the module name and target triple
+  let process = TSCBasic.Process(arguments: [toolchain.symbolGraphToolPath.pathString, "-target", "x86_64-apple-darwin19.3.0", "-module-name", "Swift", "-o", "-"])
+  try process.launch()
+  let processResult = try process.waitUntilExit()
+  let output = try processResult.output.get()
+
+
+  let decoder = JSONDecoder()
+  let graph = try decoder.decode(SymbolGraph.self, from: Data(output))
+  var index = SymbolIndex()
+  index.index(symbolGraph: graph)
+
+  let results = index.lookupSymbol(options.input)
+  if !results.isEmpty {
+    results[0].print(to: stdoutStream)
+  } else {
+    stdoutStream <<< "No results found for \(options.input)"
+  }
+
+} catch {
+  print("error \(error)")
 }
