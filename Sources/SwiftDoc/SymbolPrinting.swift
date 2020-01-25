@@ -1,14 +1,24 @@
 import TSCBasic
 
-extension SymbolGraph.Symbol {
-  public func print(to stream: OutputByteStream) {
-    let displayName = self.identifier.displayNameComponents.joined(separator: ".")
-    let header = "[\(self.kind)] \(displayName)"
+extension SymbolGraph {
+  public func print(_ symbol: Symbol, to stream: OutputByteStream) {
+    let header = "[\(symbol.kind)] \(symbol.displayName)"
     stream <<< header <<< "\n"
-    stream <<< String(repeating: "=", count: header.count) <<< "\n"
-    for line in self.docComment.lines {
+    var separatorLength = header.count
+
+    for edge in outgoingEdges(for: symbol) {
+      guard let targetSymbol = lookupSymbol(mangledName: edge.targetMangledName) else { continue }
+      let edgeLine =  "• \(edge.kind) \(targetSymbol.displayName)"
+      stream <<< edgeLine <<< "\n"
+      separatorLength = edgeLine.count
+    }
+
+    stream <<< String(repeating: "=", count: separatorLength) <<< "\n"
+
+    for line in symbol.docComment.lines {
       stream <<< line <<< "\n"
     }
+
     stream.flush()
   }
 }

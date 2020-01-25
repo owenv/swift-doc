@@ -1,21 +1,23 @@
 
-// FIXME: This is terrible. It needs much better lookup and should support
-// disambiguating symbols by module, typo correction, etc.
+// FIXME: Turn this into an actual index...
 public struct SymbolIndex {
 
-  private var symbols: [SymbolGraph.Symbol]
+  private var symbolGraphs: [SymbolGraph]
 
   public init() {
-    symbols = []
+    symbolGraphs = []
   }
 
   public mutating func index(symbolGraph: SymbolGraph) {
-    symbols += symbolGraph.symbols
+    symbolGraphs += [symbolGraph]
   }
 
-  public func lookupSymbol(_ string: String) -> [SymbolGraph.Symbol] {
-    return symbols.filter() {
-      return $0.identifier.displayNameComponents.joined(separator: ".").hasSuffix(string)
-    }
+  public func lookupSymbol(_ string: String) -> [(SymbolGraph, SymbolGraph.Symbol)] {
+
+    return symbolGraphs.map {graph in
+      graph.symbols.filter() {
+        return $0.identifier.displayNameComponents.joined(separator: ".").hasSuffix(string)
+      }.map { (graph, $0) }
+    }.reduce([], +)
   }
 }

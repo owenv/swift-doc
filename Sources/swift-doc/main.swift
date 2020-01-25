@@ -45,7 +45,7 @@ do {
 
   let results = index.lookupSymbol(options.input)
   if !results.isEmpty {
-    results[0].print(to: stdoutStream)
+    results[0].0.print(results[0].1, to: stdoutStream)
   } else {
     stdoutStream <<< "No results found for \(options.input)"
   }

@@ -31,6 +31,21 @@ public struct SymbolGraph: Decodable {
   public let metadata: Metadata
   public let module: Module
   public let symbols: [Symbol]
+  private let relationships: [Edge]
+
+  public func lookupSymbol(mangledName: String) -> Symbol? {
+    return symbols.filter { $0.identifier.mangledName == mangledName }.first
+  }
+
+  public func outgoingEdges(for symbol: Symbol, kind: Edge.Kind? = nil) -> [Edge] {
+    return relationships.filter {
+      guard $0.sourceMangledName == symbol.identifier.mangledName else { return false }
+      if let kind = kind {
+        guard $0.kind == kind else { return false }
+      }
+      return true
+    }
+  }
 }
 
 extension SymbolGraph {
@@ -120,5 +135,52 @@ extension SymbolGraph {
     public let kind: Kind
     public let identifier: Identifier
     public let docComment: DocComment
+
+    var displayName: String {
+      identifier.displayNameComponents.joined(separator: ".")
+    }
+  }
+}
+
+extension SymbolGraph {
+  public struct Edge: Decodable {
+    public enum Kind: String, Decodable, CustomStringConvertible {
+      case memberOf
+      case conformsTo
+      case inheritsFrom
+      case defaultImplementationOf
+      case overrides
+      case requirementOf
+      case optionalRequirementOf
+
+      public var description: String {
+        switch self {
+        case .memberOf:
+          return "Member of"
+        case .conformsTo:
+          return "Conforms to"
+        case .inheritsFrom:
+          return "Inherits from"
+        case .defaultImplementationOf:
+          return "Default implementation of"
+        case .overrides:
+          return "Overrides"
+        case .requirementOf:
+          return "Requirement of"
+        case .optionalRequirementOf:
+          return "Optional requirement of"
+        }
+      }
+    }
+
+    let kind: Kind
+    let sourceMangledName: String
+    let targetMangledName: String
+
+    enum CodingKeys: String, CodingKey {
+      case kind
+      case sourceMangledName = "source"
+      case targetMangledName = "target"
+    }
   }
 }
