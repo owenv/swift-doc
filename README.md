@@ -19,8 +19,8 @@ Currently, `SwiftDoc` is a straightforward SwiftPM project. Just clone the repo 
 
 __Note:__ In both cases, `<Path to Swift Toolchain>` must point to a toolchain from a  [trunk development snapshot from swift.org](https://swift.org/download/#snapshots). Older Swift versions do not include the `swift-symbolgraph-extract` tool.
 
-TODO:
-- [ ] `swift-symbolgraph-extract` output contains a lot of valuable information that isn't being deserialized yet, and could be used to improve output quality.
-- [ ] Support fetching documentation for modules other than the standard library
-- [ ] Proper indexing and search, including fuzzy matching
-- [ ] Better markdown formatting for doc comments in the terminal
+## Supported Options
+
+- `-module-name`: the name of the module to search. If not specified, this defaults to the standard library.
+- `-override-toolchain-path`: override the path to the Swift toolchain for debugging purposes.
+- `-F`, `-L`, `-I`: search paths to forward to the compiler. Currently, `swift-doc` must be able to find all of a module's dependencies in order to index it.
