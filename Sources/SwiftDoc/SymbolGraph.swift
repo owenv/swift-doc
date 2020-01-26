@@ -136,7 +136,7 @@ extension SymbolGraph {
     public let identifier: Identifier
     public let docComment: DocComment
 
-    var displayName: String {
+    public var displayName: String {
       identifier.displayNameComponents.joined(separator: ".")
     }
   }
@@ -173,9 +173,9 @@ extension SymbolGraph {
       }
     }
 
-    let kind: Kind
-    let sourceMangledName: String
-    let targetMangledName: String
+    public let kind: Kind
+    public let sourceMangledName: String
+    public let targetMangledName: String
 
     enum CodingKeys: String, CodingKey {
       case kind
