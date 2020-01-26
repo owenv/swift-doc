@@ -18,6 +18,19 @@ public struct Toolchain {
       arguments: [swiftCompilerPath.pathString, "-print-target-info"]).spm_chomp()
     return try JSONDecoder().decode(TargetInfo.self, from: result.data(using: .utf8)!)
   }
+
+  public func defaultSDKPath() throws -> AbsolutePath? {
+    if let sdk = try hostTargetInfo().paths.sdkPath {
+      return AbsolutePath(sdk)
+    }
+    #if os(macOS)
+    let result = try Process.checkNonZeroExit(
+      arguments: ["xcrun", "-sdk", "macosx", "--show-sdk-path"]).spm_chomp()
+    return AbsolutePath(result)
+    #else
+    return nil
+    #endif
+  }
 }
 
 public struct Target: Codable {
