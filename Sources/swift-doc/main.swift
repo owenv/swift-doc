@@ -31,8 +31,21 @@ do {
     toolPath.parentDirectory.parentDirectory.parentDirectory
   var toolchain = Toolchain(path: toolchainPath)
 
-  // TODO: stop hardcoding the module name and target triple
-  let process = TSCBasic.Process(arguments: [toolchain.symbolGraphToolPath.pathString, "-target", "x86_64-apple-darwin19.3.0", "-module-name", "Swift", "-o", "-"])
+  let targetInfo = try toolchain.hostTargetInfo()
+
+  // TODO: stop hardcoding the module name
+  var symbolGraphArguments = [toolchain.symbolGraphToolPath.pathString]
+  symbolGraphArguments += ["-target", targetInfo.target.triple]
+  if let sdk = targetInfo.paths.sdkPath {
+    symbolGraphArguments += ["-sdk", sdk]
+  }
+  for importPath in targetInfo.paths.runtimeLibraryImportPaths {
+    symbolGraphArguments += ["-L", importPath]
+  }
+  symbolGraphArguments += ["-module-name", "Swift"]
+  symbolGraphArguments += ["-o", "-"]
+  print(symbolGraphArguments)
+  let process = TSCBasic.Process(arguments: symbolGraphArguments)
   try process.launch()
   let processResult = try process.waitUntilExit()
   let output = try processResult.output.get()
@@ -42,12 +55,12 @@ do {
   let graph = try decoder.decode(SymbolGraph.self, from: Data(output))
   var index = SymbolIndex()
   index.index(symbolGraph: graph)
-
   let results = index.lookupSymbol(options.input)
   if !results.isEmpty {
     results[0].0.print(results[0].1, to: stdoutStream)
   } else {
     stdoutStream <<< "No results found for \(options.input)"
+    stdoutStream.flush()
   }
 
 } catch {
