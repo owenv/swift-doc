@@ -3,9 +3,18 @@ import Foundation
 
 public struct SymbolGraphLoader {
   var toolchain: Toolchain
+  var frameworkSearchPaths: [AbsolutePath]
+  var librarySearchPaths: [AbsolutePath]
+  var importSearchPaths: [AbsolutePath]
 
-  public init(toolchain: Toolchain) {
+  public init(toolchain: Toolchain,
+              frameworkSearchPaths: [AbsolutePath],
+              librarySearchPaths: [AbsolutePath],
+              importSearchPaths: [AbsolutePath]) {
     self.toolchain = toolchain
+    self.frameworkSearchPaths = frameworkSearchPaths
+    self.librarySearchPaths = librarySearchPaths
+    self.importSearchPaths = importSearchPaths
   }
 
   public func loadSymbolGraph(for moduleName: String) throws -> SymbolGraph {
@@ -16,12 +25,18 @@ public struct SymbolGraphLoader {
     if let sdk = targetInfo.paths.sdkPath {
       symbolGraphArguments += ["-sdk", sdk]
     }
-    for importPath in targetInfo.paths.runtimeLibraryImportPaths {
-      symbolGraphArguments += ["-L", importPath]
+    for path in frameworkSearchPaths {
+      symbolGraphArguments += ["-F", path.pathString]
     }
-    symbolGraphArguments += ["-module-name", "Swift"]
+    for path in librarySearchPaths {
+      symbolGraphArguments += ["-L", path.pathString]
+    }
+    for importPath in targetInfo.paths.runtimeLibraryImportPaths + importSearchPaths.map({ $0.pathString }) {
+      symbolGraphArguments += ["-I", importPath]
+    }
+    symbolGraphArguments += ["-module-name", moduleName]
     symbolGraphArguments += ["-o", "-"]
-
+    print(symbolGraphArguments.joined(separator: " "))
     let process = TSCBasic.Process(arguments: symbolGraphArguments)
     try process.launch()
     let processResult = try process.waitUntilExit()

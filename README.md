@@ -15,7 +15,7 @@ Currently, `SwiftDoc` is a straightforward SwiftPM project. Just clone the repo 
 
 ### Option 2: Testing/Debugging
 
-1. Invoke the build `swift-doc` binary as `swift-doc <symbol name> --override-toolchain-path <Path to Swift Toolchain>`
+1. Invoke the build `swift-doc` binary as `swift-doc <symbol name> -override-toolchain-path <Path to Swift Toolchain>`
 
 __Note:__ In both cases, `<Path to Swift Toolchain>` must point to a toolchain from a  [trunk development snapshot from swift.org](https://swift.org/download/#snapshots). Older Swift versions do not include the `swift-symbolgraph-extract` tool.
 
