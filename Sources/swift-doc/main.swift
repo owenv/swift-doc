@@ -29,30 +29,12 @@ do {
   // Remove "usr/bin/swift-doc"
   let toolchainPath = options.overrideToolchainPath ??
     toolPath.parentDirectory.parentDirectory.parentDirectory
-  var toolchain = Toolchain(path: toolchainPath)
-
-  let targetInfo = try toolchain.hostTargetInfo()
+  let toolchain = Toolchain(path: toolchainPath)
 
   // TODO: stop hardcoding the module name
-  var symbolGraphArguments = [toolchain.symbolGraphToolPath.pathString]
-  symbolGraphArguments += ["-target", targetInfo.target.triple]
-  if let sdk = targetInfo.paths.sdkPath {
-    symbolGraphArguments += ["-sdk", sdk]
-  }
-  for importPath in targetInfo.paths.runtimeLibraryImportPaths {
-    symbolGraphArguments += ["-L", importPath]
-  }
-  symbolGraphArguments += ["-module-name", "Swift"]
-  symbolGraphArguments += ["-o", "-"]
-  print(symbolGraphArguments)
-  let process = TSCBasic.Process(arguments: symbolGraphArguments)
-  try process.launch()
-  let processResult = try process.waitUntilExit()
-  let output = try processResult.output.get()
+  let loader = SymbolGraphLoader(toolchain: toolchain)
+  let graph = try loader.loadSymbolGraph(for: "Swift")
 
-
-  let decoder = JSONDecoder()
-  let graph = try decoder.decode(SymbolGraph.self, from: Data(output))
   var index = SymbolIndex()
   index.index(symbolGraph: graph)
   let results = index.lookupSymbol(options.input)

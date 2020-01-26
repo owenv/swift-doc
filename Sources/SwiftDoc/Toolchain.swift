@@ -3,20 +3,17 @@ import TSCUtility
 import Foundation
 
 public struct Toolchain {
-
   let toolchainPath: AbsolutePath
+  public var symbolGraphToolPath: AbsolutePath
+  public var swiftCompilerPath: AbsolutePath
 
   public init(path: AbsolutePath) {
     self.toolchainPath = path
+    symbolGraphToolPath = toolchainPath.appending(components: "usr", "bin", "swift-symbolgraph-extract")
+    swiftCompilerPath = toolchainPath.appending(components: "usr", "bin", "swift")
   }
 
-  public lazy var symbolGraphToolPath: AbsolutePath =
-    toolchainPath.appending(components: "usr", "bin", "swift-symbolgraph-extract")
-
-  public lazy var swiftCompilerPath: AbsolutePath =
-    toolchainPath.appending(components: "usr", "bin", "swift")
-
-  public mutating func hostTargetInfo() throws -> TargetInfo {
+  public func hostTargetInfo() throws -> TargetInfo {
     let result = try Process.checkNonZeroExit(
       arguments: [swiftCompilerPath.pathString, "-print-target-info"]).spm_chomp()
     return try JSONDecoder().decode(TargetInfo.self, from: result.data(using: .utf8)!)
