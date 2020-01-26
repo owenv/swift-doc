@@ -63,9 +63,6 @@ do {
     results[0].0.print(results[0].1, to: stdoutStream)
   } else {
     stdoutStream <<< "No results found for \(options.input) out of \(graph.symbols.count) symbols in module \(options.moduleName)."
-    for symbol in graph.symbols {
-      print(symbol.displayName)
-    }
     stdoutStream.flush()
   }
 

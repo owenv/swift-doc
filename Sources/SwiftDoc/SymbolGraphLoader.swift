@@ -36,7 +36,6 @@ public struct SymbolGraphLoader {
     }
     symbolGraphArguments += ["-module-name", moduleName]
     symbolGraphArguments += ["-o", "-"]
-    print(symbolGraphArguments.joined(separator: " "))
     let process = TSCBasic.Process(arguments: symbolGraphArguments)
     try process.launch()
     let processResult = try process.waitUntilExit()
