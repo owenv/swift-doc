@@ -24,7 +24,6 @@ public struct SymbolGraphLoader {
     symbolGraphArguments += ["-target", targetInfo.target.triple]
     if let sdk = try toolchain.defaultSDKPath() {
       symbolGraphArguments += ["-sdk", sdk.pathString]
-      print(sdk.pathString)
     }
     for path in frameworkSearchPaths {
       symbolGraphArguments += ["-F", path.pathString]

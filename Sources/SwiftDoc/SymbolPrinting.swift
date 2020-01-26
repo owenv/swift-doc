@@ -18,7 +18,21 @@ extension SymbolGraph {
     for line in symbol.docComment.lines {
       stream <<< line <<< "\n"
     }
+    if symbol.docComment.lines.isEmpty {
+      stream <<< "No documentation available.\n"
+    }
 
+    let memberEdges = incomingEdges(for: symbol, kind: .memberOf)
+    if !memberEdges.isEmpty {
+      stream <<< "\nMembers\n"
+      stream <<< "=======\n"
+      for memberEdge in memberEdges {
+        guard let member = lookupSymbol(mangledName: memberEdge.sourceMangledName) else { continue }
+        print(member, to: stream)
+        stream <<< "\n"
+      }
+    }
+    
     stream.flush()
   }
 }

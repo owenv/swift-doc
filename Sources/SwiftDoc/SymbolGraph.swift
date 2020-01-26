@@ -46,6 +46,17 @@ public struct SymbolGraph: Decodable {
       return true
     }
   }
+
+  public func incomingEdges(for symbol: Symbol, kind: Edge.Kind? = nil) -> [Edge] {
+    return relationships.filter {
+      guard $0.targetMangledName == symbol.identifier.mangledName else { return false }
+      if let kind = kind {
+        guard $0.kind == kind else { return false }
+      }
+      return true
+    }
+  }
+
 }
 
 extension SymbolGraph {
