@@ -143,12 +143,37 @@ extension SymbolGraph {
       }
     }
 
+    public struct Declaration: Decodable {
+      public struct Fragment: Decodable {
+        public enum Kind: String, Decodable {
+          case keyword, attribute, number, string, identifier, typeIdentifier, genericParameter, text
+        }
+
+        let kind: Kind
+        let spelling: String
+      }
+
+      enum CodingKeys: String, CodingKey { case fragments = "subheading" }
+
+      let fragments: [Fragment]
+    }
+
+    enum CodingKeys: String, CodingKey {
+      case kind, identifier, docComment
+      case declaration = "names"
+    }
+
     public let kind: Kind
     public let identifier: Identifier
     public let docComment: DocComment
+    public let declaration: Declaration
 
     public var displayName: String {
       identifier.displayNameComponents.joined(separator: ".")
+    }
+
+    public var declarationString: String {
+      declaration.fragments.map{ $0.spelling }.joined()
     }
   }
 }

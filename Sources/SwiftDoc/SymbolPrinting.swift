@@ -4,7 +4,8 @@ extension SymbolGraph {
   public func print(_ symbol: Symbol, to stream: OutputByteStream) {
     let header = "[\(symbol.kind)] \(symbol.displayName)"
     stream <<< header <<< "\n"
-    var separatorLength = header.count
+    stream <<< symbol.declarationString <<< "\n"
+    var separatorLength = symbol.declarationString.count
 
     for edge in outgoingEdges(for: symbol) {
       guard let targetSymbol = lookupSymbol(mangledName: edge.targetMangledName) else { continue }
