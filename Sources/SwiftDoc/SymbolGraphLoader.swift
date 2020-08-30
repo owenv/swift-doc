@@ -2,45 +2,44 @@ import TSCBasic
 import Foundation
 
 public struct SymbolGraphLoader {
-  var toolchain: Toolchain
-  var frameworkSearchPaths: [AbsolutePath]
-  var librarySearchPaths: [AbsolutePath]
-  var importSearchPaths: [AbsolutePath]
+  var packageToolPath: AbsolutePath
+  var packagePath: AbsolutePath
 
-  public init(toolchain: Toolchain,
-              frameworkSearchPaths: [AbsolutePath],
-              librarySearchPaths: [AbsolutePath],
-              importSearchPaths: [AbsolutePath]) {
-    self.toolchain = toolchain
-    self.frameworkSearchPaths = frameworkSearchPaths
-    self.librarySearchPaths = librarySearchPaths
-    self.importSearchPaths = importSearchPaths
+  enum Error: Swift.Error {
+    case dumpSymbolGraphFailed
+    case couldNotDetermineOutputPath
   }
 
-  public func loadSymbolGraph(for moduleName: String) throws -> SymbolGraph {
-    let targetInfo = try toolchain.hostTargetInfo()
+  public init(packageToolPath: AbsolutePath, packagePath: AbsolutePath) {
+    self.packageToolPath = packageToolPath
+    self.packagePath = packagePath
+  }
 
-    var symbolGraphArguments = [toolchain.symbolGraphToolPath.pathString]
-    symbolGraphArguments += ["-target", targetInfo.target.triple]
-    if let sdk = try toolchain.defaultSDKPath() {
-      symbolGraphArguments += ["-sdk", sdk.pathString]
-    }
-    for path in frameworkSearchPaths {
-      symbolGraphArguments += ["-F", path.pathString]
-    }
-    for path in librarySearchPaths {
-      symbolGraphArguments += ["-L", path.pathString]
-    }
-    for importPath in targetInfo.paths.runtimeLibraryImportPaths + importSearchPaths.map({ $0.pathString }) {
-      symbolGraphArguments += ["-I", importPath]
-    }
-    symbolGraphArguments += ["-module-name", moduleName]
-    symbolGraphArguments += ["-o", "-"]
-    let process = TSCBasic.Process(arguments: symbolGraphArguments)
+  public func loadSymbolGraphs() throws {
+    let commandLine = [packageToolPath.pathString, "--package-path", packagePath.pathString, "dump-symbol-graph"]
+    let process = Process(arguments: commandLine,
+                          outputRedirection: .collect)
     try process.launch()
-    let processResult = try process.waitUntilExit()
-    let output = try processResult.output.get()
-    
-    return try JSONDecoder().decode(SymbolGraph.self, from: Data(output))
+    let result = try process.waitUntilExit()
+    guard result.exitStatus == .terminated(code: 0) else {
+      throw Error.dumpSymbolGraphFailed
+    }
+    let output = try result.utf8Output()
+    guard let lastLine = output.split(separator: "\n").last,
+          lastLine.hasPrefix("Files written to "),
+          let outputPath = try? AbsolutePath(validating: String(lastLine.dropFirst(17))) else {
+      throw Error.couldNotDetermineOutputPath
+    }
+
+    let decoder = JSONDecoder()
+    for item in try localFileSystem.getDirectoryContents(outputPath) {
+      let symbolGraphPath = outputPath.appending(component: item)
+      do {
+        let data = Data(try localFileSystem.readFileContents(symbolGraphPath).contents)
+        let symbolGraph = try decoder.decode(SymbolGraph.self, from: data)
+      } catch {
+        print(error)
+      }
+    }
   }
 }
